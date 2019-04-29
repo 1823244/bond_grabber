@@ -2,6 +2,7 @@ from requests import get
 from requests.exceptions import RequestException
 from contextlib import closing
 from bs4 import BeautifulSoup
+import json
 
 def simple_get(url):
 	"""
@@ -40,3 +41,41 @@ raw_html = simple_get('https://bonds.finam.ru/issue/details001D600002/default.as
 w = len(raw_html)
 print(w)
 
+results = [] #array of arrays
+
+html = BeautifulSoup(raw_html, 'html.parser')
+for i, t in enumerate(html.select('table')):
+
+	if t.text.find("КупоныПогашение") != -1:
+		print ("000000000000000000000")
+	else:
+		continue
+		
+	#print(i, t.text)
+	
+	count = 0
+	rows = t.find_all('tr')
+	print(len(rows))
+	for row in rows:
+		#print (row.text)
+		count+=1
+		#print(count)
+		#if count==10:
+		#	break		
+		
+		cols = row.find_all('td')
+
+		oneRow = []
+		for col in cols:
+			#print (col.text)
+
+			oneRow.append(col.text)
+			oneRow.append(',')
+		
+		results.append(oneRow)
+
+#print(results)
+filename = 'table.json'
+wfile = open(filename, mode='w', encoding='UTF-8')
+json.dump(results, wfile, indent=4, ensure_ascii=False)
+wfile.close()
