@@ -38,31 +38,43 @@ def log_error(e):
 	print(e)
 	
 raw_html = simple_get('https://bonds.finam.ru/issue/details001D600002/default.asp')
+
+#with open("test_source_htm.html") as fp:
+#	soup = BeautifulSoup(fp)
+
+
 w = len(raw_html)
 print(w)
+#print(raw_html)
 
 results = [] #array of arrays
 
 html = BeautifulSoup(raw_html, 'html.parser')
 for i, t in enumerate(html.select('table')):
 
-	if t.text.find("КупоныПогашение") != -1:
-		print ("000000000000000000000")
+	row = t.find('tr')
+	if row.text.find('КупоныПогашение') != -1:
+		print("ok")
 	else:
 		continue
-		
-	#print(i, t.text)
-	
+
+
+	#print(i, rows.text)
+	#break
+
+	row = row.find_next_sibling('tr')
+	print('row: '+str(row))
+
 	count = 0
-	rows = t.find_all('tr')
-	print(len(rows))
-	for row in rows:
-		#print (row.text)
+	while row != None:
+	#for row in rows:
+		#print (
+		# row.text)
 		count+=1
 		#print(count)
 		#if count==10:
-		#	break		
-		
+		#	break
+
 		cols = row.find_all('td')
 
 		oneRow = []
@@ -70,12 +82,27 @@ for i, t in enumerate(html.select('table')):
 			#print (col.text)
 
 			oneRow.append(col.text)
-			oneRow.append(',')
+			#oneRow.append(',')
 		
 		results.append(oneRow)
+		print('one row: '+str(oneRow))
+
+		row = row.find_next_sibling("tr")
+
+		#if count == 100:
+		#	break
+	else:
+		print("no rows")
+
+	print(count)
 
 #print(results)
 filename = 'table.json'
 wfile = open(filename, mode='w', encoding='UTF-8')
 json.dump(results, wfile, indent=4, ensure_ascii=False)
 wfile.close()
+
+#filename = 'raw.html'
+#wfile = open(filename, mode='w', encoding='UTF-8')
+#wfile.write(str(raw_html))
+#wfile.close()
