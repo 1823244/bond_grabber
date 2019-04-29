@@ -1,3 +1,5 @@
+https://realpython.com/python-web-scraping-practical-introduction/
+
 preparation
 
 python -m venv venv
