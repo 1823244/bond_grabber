@@ -4,3 +4,5 @@ Scripts/
 pyvenv.cfg
 table.json
 pyenv.cfg
+.idea/
+raw.html
