@@ -2,3 +2,5 @@ Include/
 Lib/
 Scripts/
 pyvenv.cfg
+table.json
+pyenv.cfg

@@ -36,28 +36,29 @@ def log_error(e):
 	make it do anything.
 	"""
 	print(e)
-	
-raw_html = simple_get('https://bonds.finam.ru/issue/details001D600002/default.asp')
 
-#with open("test_source_htm.html") as fp:
-#	soup = BeautifulSoup(fp)
-
-
-w = len(raw_html)
-print(w)
-#print(raw_html)
 
 results = [] #array of arrays
 
-html = BeautifulSoup(raw_html, 'html.parser')
+#raw_html = simple_get('https://bonds.finam.ru/issue/details001D600002/default.asp')
+#html = BeautifulSoup(raw_html, 'html5lib')
+
+# читаем из файла (для отладки)
+# html5lib читает все таблицы хорошо
+#html = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html5lib')
+# html.parser не может прочитать таблицу купонов до конца, прерывается на 39-м купоне для Russia-30
+html = BeautifulSoup(open('saved_html_pages/russia-2042.html'), 'html.parser')
+
 for i, t in enumerate(html.select('table')):
 
 	row = t.find('tr')
-	if row.text.find('КупоныПогашение') != -1:
+	print(row.text)
+	"""if row.text.find('Купоны') != -1:
 		print("ok")
 	else:
+		print("fail")
 		continue
-
+	"""
 
 	#print(i, rows.text)
 	#break
