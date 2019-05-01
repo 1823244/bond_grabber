@@ -1,8 +1,12 @@
+# grab coupons from bond.finam.ru
+# put the data into json as a result
+
 from requests import get
 from requests.exceptions import RequestException
 from contextlib import closing
 from bs4 import BeautifulSoup
 import json
+
 
 def simple_get(url):
 	"""
@@ -17,8 +21,9 @@ def simple_get(url):
 			else:
 				return None
 	except RequestException as e:
-		log_error('Error during requests to {0} : {1}'.format(url,str(e)))
+		log_error('Error during requests to {0} : {1}'.format(url, str(e)))
 		return None
+
 
 def is_good_response(resp):
 	"""
@@ -28,7 +33,8 @@ def is_good_response(resp):
 	return (resp.status_code == 200
 			and content_type is not None
 			and content_type.find('html') > -1)
-			
+
+
 def log_error(e):
 	"""
 	It is always a good idea to log errors. 
@@ -38,72 +44,70 @@ def log_error(e):
 	print(e)
 
 
-results = [] #array of arrays
+def get_array_with_accruals(row, t):
+	results = []  # array of arrays
 
-#raw_html = simple_get('https://bonds.finam.ru/issue/details001D600002/default.asp')
-#html = BeautifulSoup(raw_html, 'html5lib')
+	rows = t.find_all('tr')
+
+	count = 0
+	for row in rows:
+
+		if len(row.contents) != 7:
+			continue
+
+		count += 1
+		cols = row.find_all('td')
+		oneRow = []
+		for col in cols:
+			oneRow.append( col.text.strip() )
+
+		if len(oneRow) != 0:
+			results.append(oneRow)
+			#print('one row: ' + str(oneRow))
+
+	else:
+		print("no more rows")
+
+	print('total rows count: ' + str(count))
+	return results
+
+
+# raw_html = simple_get('https://bonds.finam.ru/issue/details001D600002/default.asp')
+# soup = BeautifulSoup(raw_html, 'html5lib')
 
 # читаем из файла (для отладки)
 # html5lib читает все таблицы хорошо
-#html = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html5lib')
+# soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html5lib')
 # html.parser не может прочитать таблицу купонов до конца, прерывается на 39-м купоне для Russia-30
-html = BeautifulSoup(open('saved_html_pages/russia-2042.html'), 'html.parser')
+soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html.parser')
 
-for i, t in enumerate(html.select('table')):
-
+for i, t in enumerate(soup.select('table')):
 	row = t.find('tr')
-	print(row.text)
-	"""if row.text.find('Купоны') != -1:
-		print("ok")
+	results = []
+	# print('row text: ' + row.text)
+	col = row.find('th')
+	if col != None:
+
+		# Если таблица не имеет родителя, то пропускаем.
+		# Это корневая таблица, на базе которой построена разметка страницы
+		if t.find_parent('table') == None:
+			continue
+
+		if col.text == 'Купоны':
+			print("ok")
+			results = get_array_with_accruals(row, t)
+			break
 	else:
 		print("fail")
 		continue
-	"""
 
-	#print(i, rows.text)
-	#break
-
-	row = row.find_next_sibling('tr')
-	print('row: '+str(row))
-
-	count = 0
-	while row != None:
-	#for row in rows:
-		#print (
-		# row.text)
-		count+=1
-		#print(count)
-		#if count==10:
-		#	break
-
-		cols = row.find_all('td')
-
-		oneRow = []
-		for col in cols:
-			#print (col.text)
-
-			oneRow.append(col.text)
-			#oneRow.append(',')
-		
-		results.append(oneRow)
-		print('one row: '+str(oneRow))
-
-		row = row.find_next_sibling("tr")
-
-		#if count == 100:
-		#	break
-	else:
-		print("no rows")
-
-	print(count)
-
-#print(results)
+# print(results)
 filename = 'table.json'
 wfile = open(filename, mode='w', encoding='UTF-8')
 json.dump(results, wfile, indent=4, ensure_ascii=False)
 wfile.close()
 
-#filename = 'raw.html'
-#wfile = open(filename, mode='w', encoding='UTF-8')
-#wfile.write(str(raw_html))
-#wfile.close()
+# filename = 'raw.html'
+# wfile = open(filename, mode='w', encoding='UTF-8')
+# wfile.write(str(raw_html))
+# wfile.close()
