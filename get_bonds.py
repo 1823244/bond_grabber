@@ -7,6 +7,7 @@ from contextlib import closing
 from bs4 import BeautifulSoup
 import json
 from sys import argv
+from search_bonds import BondSearch
 
 
 def simple_get(url):
@@ -78,9 +79,14 @@ def get_array_with_accruals(row, t):
 
 # читаем из файла (для отладки)
 # html5lib читает все таблицы хорошо
-soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html5lib')
+# soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html5lib')
 # html.parser не может прочитать таблицу купонов до конца, прерывается на 39-м купоне для Russia-30
-#soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html.parser')
+# soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html.parser')
+
+BondSearch = BondSearch()
+couponsURL = BondSearch.find_coupons(argv[1])
+raw_html = simple_get(couponsURL)
+soup = BeautifulSoup(raw_html, 'html5lib')
 
 results = []
 
