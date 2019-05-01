@@ -6,6 +6,7 @@ from requests.exceptions import RequestException
 from contextlib import closing
 from bs4 import BeautifulSoup
 import json
+from sys import argv
 
 
 def simple_get(url):
@@ -37,7 +38,7 @@ def is_good_response(resp):
 
 def log_error(e):
 	"""
-	It is always a good idea to log errors. 
+	It is always a good idea to log errors.
 	This function just prints them, but you can
 	make it do anything.
 	"""
@@ -81,9 +82,11 @@ def get_array_with_accruals(row, t):
 # html.parser не может прочитать таблицу купонов до конца, прерывается на 39-м купоне для Russia-30
 soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html.parser')
 
+results = []
+
 for i, t in enumerate(soup.select('table')):
 	row = t.find('tr')
-	results = []
+
 	# print('row text: ' + row.text)
 	col = row.find('th')
 	if col != None:
@@ -111,3 +114,5 @@ wfile.close()
 # wfile = open(filename, mode='w', encoding='UTF-8')
 # wfile.write(str(raw_html))
 # wfile.close()
+
+print (argv)
