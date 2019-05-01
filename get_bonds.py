@@ -72,15 +72,15 @@ def get_array_with_accruals(row, t):
 	print('total rows count: ' + str(count))
 	return results
 
-
-# raw_html = simple_get('https://bonds.finam.ru/issue/details001D600002/default.asp')
-# soup = BeautifulSoup(raw_html, 'html5lib')
+#raw_html = simple_get('https://bonds.finam.ru/issue/details001D600002/default.asp')
+#soup = BeautifulSoup(raw_html, 'html5lib')
+#soup = BeautifulSoup(raw_html, 'html.parser')
 
 # читаем из файла (для отладки)
 # html5lib читает все таблицы хорошо
-# soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html5lib')
+soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html5lib')
 # html.parser не может прочитать таблицу купонов до конца, прерывается на 39-м купоне для Russia-30
-soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html.parser')
+#soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html.parser')
 
 results = []
 
