@@ -6,3 +6,4 @@ table.json
 pyenv.cfg
 .idea/
 raw.html
+*.pyc
