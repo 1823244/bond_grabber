@@ -83,10 +83,16 @@ def get_array_with_accruals(row, t):
 # html.parser не может прочитать таблицу купонов до конца, прерывается на 39-м купоне для Russia-30
 # soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html.parser')
 
+if len(argv) < 2:
+	raise RuntimeError("not enough parameters")
+
 BondSearch = BondSearch()
-couponsURL = BondSearch.find_coupons(argv[1])
+couponsURL = BondSearch.find_coupons(argv[1].strip())
 raw_html = simple_get(couponsURL)
 soup = BeautifulSoup(raw_html, 'html5lib')
+raw_html = None
+couponsURL = None
+BondSearch = None
 
 results = []
 
