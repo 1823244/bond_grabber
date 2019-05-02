@@ -1,12 +1,20 @@
-# grab coupons from bond.finam.ru
+# grab coupons from bonds.finam.ru
 # put the data into json as a result
+# Result filename: ISIN_coupons.json, where ISIN
+#   is substituted to real ISIN from first parameter
+# Parameters
+# 1. ISIN - string - ISIN code of bond, like XS0114288789
+# 2. Output dir - string - path to output directory (optional).
+#    Dir name must not ends with '\'
+#    If dir name contains spaces, it must be enclosed in quotes
 
 from requests import get
 from requests.exceptions import RequestException
 from contextlib import closing
 from bs4 import BeautifulSoup
-import json
+from json import dump
 from sys import argv
+from os import sep
 from search_bonds import BondSearch
 
 
@@ -46,62 +54,25 @@ def log_error(e):
 	print(e)
 
 
-def get_array_with_accruals(row, t):
-	results = []  # array of arrays
+def get_array_with_coupons(ISIN):
+	"""
+	Collects accruals to an array.
+	"""
+	bs = BondSearch()
+	couponsURL = bs.find_coupons(ISIN)
+	raw_html = simple_get(couponsURL)
+	soup = BeautifulSoup(raw_html, 'html5lib')
+	raw_html = None
+	couponsURL = None
+	bs = None
+	results = []
+	for i, t in enumerate(soup.select('table')):
+		row = t.find('tr')
 
-	rows = t.find_all('tr')
-
-	count = 0
-	for row in rows:
-
-		if len(row.contents) != 7:
+		# print('row text: ' + row.text)
+		col = row.find('th')
+		if col == None:
 			continue
-
-		count += 1
-		cols = row.find_all('td')
-		oneRow = []
-		for col in cols:
-			oneRow.append( col.text.strip() )
-
-		if len(oneRow) != 0:
-			results.append(oneRow)
-			#print('one row: ' + str(oneRow))
-
-	else:
-		print("no more rows")
-
-	print('total rows count: ' + str(count))
-	return results
-
-#raw_html = simple_get('https://bonds.finam.ru/issue/details001D600002/default.asp')
-#soup = BeautifulSoup(raw_html, 'html5lib')
-#soup = BeautifulSoup(raw_html, 'html.parser')
-
-# читаем из файла (для отладки)
-# html5lib читает все таблицы хорошо
-# soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html5lib')
-# html.parser не может прочитать таблицу купонов до конца, прерывается на 39-м купоне для Russia-30
-# soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html.parser')
-
-if len(argv) < 2:
-	raise RuntimeError("not enough parameters")
-
-BondSearch = BondSearch()
-couponsURL = BondSearch.find_coupons(argv[1].strip())
-raw_html = simple_get(couponsURL)
-soup = BeautifulSoup(raw_html, 'html5lib')
-raw_html = None
-couponsURL = None
-BondSearch = None
-
-results = []
-
-for i, t in enumerate(soup.select('table')):
-	row = t.find('tr')
-
-	# print('row text: ' + row.text)
-	col = row.find('th')
-	if col != None:
 
 		# Если таблица не имеет родителя, то пропускаем.
 		# Это корневая таблица, на базе которой построена разметка страницы
@@ -109,22 +80,58 @@ for i, t in enumerate(soup.select('table')):
 			continue
 
 		if col.text == 'Купоны':
-			print("ok")
-			results = get_array_with_accruals(row, t)
+			rows = t.find_all('tr')
+			count = 0
+			for row in rows:
+				if len(row.contents) != 7:
+					continue
+				count += 1
+				cols = row.find_all('td')
+				oneRow = []
+				for col in cols:
+					oneRow.append(col.text.strip())
+				if len(oneRow) != 0:
+					results.append(oneRow)
 			break
+	return results
+
+
+def make_json_with_coupons(ISIN, output_dir = ''):
+	"""
+	Flushes array with accruals to file.
+	Filename: ISIN_coupons.json, where ISIN is substituted to real ISIN from first parameter
+	"""
+
+	if output_dir == '':
+		filename = ISIN + '_coupons.json'
 	else:
-		print("fail")
-		continue
+		filename = output_dir + sep + ISIN + '_coupons.json'
 
-# print(results)
-filename = 'table.json'
-wfile = open(filename, mode='w', encoding='UTF-8')
-json.dump(results, wfile, indent=4, ensure_ascii=False)
-wfile.close()
+	coupons_array = get_array_with_coupons(ISIN)
+	with open(filename, mode='w', encoding='UTF-8') as wfile:
+		dump(coupons_array, wfile, indent=4, ensure_ascii=False)
+		wfile.close()
 
-# filename = 'raw.html'
-# wfile = open(filename, mode='w', encoding='UTF-8')
-# wfile.write(str(raw_html))
-# wfile.close()
 
-print (argv)
+############################# MAIN PROGRAM #############################
+
+
+
+# читаем из файла (для отладки)
+# html5lib читает все таблицы хорошо
+# soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html5lib')
+# html.parser не может прочитать таблицу купонов до конца, прерывается на 39-м купоне для Russia-30
+# soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html.parser')
+
+# First arg - the name of the script
+# Users args start from second position
+if len(argv) < 2:
+	raise RuntimeError("not enough parameters")
+
+ISIN = argv[1].strip()
+
+output_dir = ''
+if len(argv) > 2:
+	output_dir = argv[2].strip()
+
+make_json_with_coupons(ISIN, output_dir)
