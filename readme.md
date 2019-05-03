@@ -19,7 +19,7 @@ $> python get_bonds.py XS0114288789 "c:\rus state bonds"
 ```
 ISIN_coupons.json
 ```
-где ISIN заменяется на значение из первого параметрами  
+где ISIN заменяется на значение из первого параметра.  
 
 ## Немного теории.
 
@@ -44,7 +44,7 @@ https://realpython.com/python-web-scraping-practical-introduction/
 
 preparation
 
-python -m venv venv
-cd venv/Scripts
-activate.bat
-pip install requests BeautifulSoup4 bs4
+python -m venv bonds_grabber    
+cd venv/Scripts  
+activate.bat  
+pip install requests BeautifulSoup4 bs4  
