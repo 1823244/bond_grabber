@@ -45,6 +45,6 @@ https://realpython.com/python-web-scraping-practical-introduction/
 preparation
 
 python -m venv bonds_grabber    
-cd venv/Scripts  
+cd bonds_grabber/Scripts  
 activate.bat  
 pip install requests BeautifulSoup4 bs4  
