@@ -1,7 +1,8 @@
-# grab coupons from bonds.finam.ru
-# put the data into json as a result
+# This script:
+# 1)grabs coupons from bonds.finam.ru
+# 2)puts the data into json as a result
 # Result filename: ISIN_coupons.json, where ISIN
-#   is substituted to real ISIN from first parameter
+#   is substituted to real ISIN from the first parameter
 # Parameters
 # 1. ISIN - string - ISIN code of bond, like XS0114288789
 # 2. Output dir - string - path to output directory (optional).
@@ -37,7 +38,8 @@ def simple_get(url):
 
 def is_good_response(resp):
 	"""
-	Returns True if the response seems to be HTML, False otherwise.
+	Returns True if the response seems to be HTML,
+	False otherwise.
 	"""
 	content_type = resp.headers['Content-Type'].lower()
 	return (resp.status_code == 200
@@ -56,33 +58,39 @@ def log_error(e):
 
 def get_array_with_coupons(ISIN):
 	"""
-	Collects accruals to an array.
+	Collects coupons to an array.
 	"""
-	bs = BondSearch()
-	couponsURL = bs.find_coupons(ISIN)
+	
+	# Let's find URL of coupons page by ISIN.
+	couponsURL = BondSearch().find_coupons(ISIN)
+	
+	# Retrieve page with coupons.
 	raw_html = simple_get(couponsURL)
+	couponsURL = None
+	
+	# Parse HTML and get 'soup' object.
 	soup = BeautifulSoup(raw_html, 'html5lib')
 	raw_html = None
-	couponsURL = None
-	bs = None
+	
+	# Process the 'soup' object and find table with coupons.
 	results = []
 	for i, t in enumerate(soup.select('table')):
 		row = t.find('tr')
-
-		# print('row text: ' + row.text)
 		col = row.find('th')
 		if col == None:
 			continue
 
-		# Если таблица не имеет родителя, то пропускаем.
-		# Это корневая таблица, на базе которой построена разметка страницы
+		# If the table has no parent - skip it, because it is root table for the page.
 		if t.find_parent('table') == None:
 			continue
 
+		# If first column contains text 'Купоны' - this is needed table.
 		if col.text == 'Купоны':
 			rows = t.find_all('tr')
 			count = 0
 			for row in rows:
+				# We know there is 7 columns in needed table.
+				# And there is only one such table on the page.
 				if len(row.contents) != 7:
 					continue
 				count += 1
@@ -98,8 +106,9 @@ def get_array_with_coupons(ISIN):
 
 def make_json_with_coupons(ISIN, output_dir = ''):
 	"""
-	Flushes array with accruals to file.
-	Filename: ISIN_coupons.json, where ISIN is substituted to real ISIN from first parameter
+	Flushes array with coupons to file.
+	Filename: ISIN_coupons.json, where ISIN is
+	substituted to real ISIN from first parameter
 	"""
 
 	if output_dir == '':
@@ -108,6 +117,7 @@ def make_json_with_coupons(ISIN, output_dir = ''):
 		filename = output_dir + sep + ISIN + '_coupons.json'
 
 	coupons_array = get_array_with_coupons(ISIN)
+	
 	with open(filename, mode='w', encoding='UTF-8') as wfile:
 		dump(coupons_array, wfile, indent=4, ensure_ascii=False)
 		wfile.close()
@@ -123,15 +133,18 @@ def make_json_with_coupons(ISIN, output_dir = ''):
 # html.parser не может прочитать таблицу купонов до конца, прерывается на 39-м купоне для Russia-30
 # soup = BeautifulSoup(open('saved_html_pages/russia-2030.html'), 'html.parser')
 
-# First arg - the name of the script
-# Users args start from second position
+# First arg (argv[0]) - the name of the script (feature of python)
+# User's args start from the second position, so if we have only 1 arg here - this is error
 if len(argv) < 2:
 	raise RuntimeError("not enough parameters")
 
+# we always have ISIN in 2nd parameter
 ISIN = argv[1].strip()
 
+# we may have output directory in 3rd parameter
 output_dir = ''
 if len(argv) > 2:
 	output_dir = argv[2].strip()
 
+# run script
 make_json_with_coupons(ISIN, output_dir)
