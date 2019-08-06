@@ -60,7 +60,7 @@ def get_array_with_coupons(ISIN):
 	"""
 	Collects coupons to an array.
 	"""
-	
+
 	# Let's find URL of coupons page by ISIN.
 	couponsURL = BondSearch().find_coupons(ISIN)
 	
